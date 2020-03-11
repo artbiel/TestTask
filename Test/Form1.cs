@@ -41,7 +41,7 @@ namespace Test
             try
             {
                 //открыть форму для создания
-                Edit create = new Edit("Create", null);
+                Edit create = new Edit("Create");
                 DialogResult result = create.ShowDialog(this);
                 if (result == DialogResult.Cancel)
                     return;
