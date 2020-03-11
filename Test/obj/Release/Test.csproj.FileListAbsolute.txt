@@ -1,0 +1,16 @@
+E:\Test\Test\bin\Release\Test.exe.config
+E:\Test\Test\bin\Release\Test.exe
+E:\Test\Test\bin\Release\Test.pdb
+E:\Test\Test\bin\Release\EntityFramework.dll
+E:\Test\Test\bin\Release\EntityFramework.SqlServer.dll
+E:\Test\Test\bin\Release\EntityFramework.xml
+E:\Test\Test\bin\Release\EntityFramework.SqlServer.xml
+E:\Test\Test\obj\Release\Test.Edit.resources
+E:\Test\Test\obj\Release\Test.Form1.resources
+E:\Test\Test\obj\Release\Test.Properties.Resources.resources
+E:\Test\Test\obj\Release\Test.csproj.GenerateResource.cache
+E:\Test\Test\obj\Release\Test.csproj.CoreCompileInputs.cache
+E:\Test\Test\obj\Release\Test.csproj.CopyComplete
+E:\Test\Test\obj\Release\Test.exe
+E:\Test\Test\obj\Release\Test.pdb
+E:\Test\Test\obj\Release\Test.csprojResolveAssemblyReference.cache
