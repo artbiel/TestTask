@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.StudentsGridView = new System.Windows.Forms.DataGridView();
             this.CreateButton = new System.Windows.Forms.Button();
             this.EditButton = new System.Windows.Forms.Button();
@@ -36,6 +37,7 @@
             this.SearchTextBox = new System.Windows.Forms.TextBox();
             this.SearchType = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.RefreshTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.StudentsGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -131,6 +133,12 @@
             this.label1.TabIndex = 7;
             this.label1.Text = "Поиск по:";
             // 
+            // RefreshTimer
+            // 
+            this.RefreshTimer.Enabled = true;
+            this.RefreshTimer.Interval = 5000;
+            this.RefreshTimer.Tick += new System.EventHandler(this.RefreshTimer_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -161,6 +169,7 @@
         private System.Windows.Forms.TextBox SearchTextBox;
         private System.Windows.Forms.ComboBox SearchType;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Timer RefreshTimer;
     }
 }
 

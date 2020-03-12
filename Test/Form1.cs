@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,12 +17,17 @@ namespace Test
 {
     public partial class Form1 : Form
     {
-        //Кэш для списка студентов
+        //контекст данных
         List<Student> Students = new List<Student>();
 
         public Form1()
         {
             InitializeComponent();
+
+            //получить путь к текущей сборке
+            string assembly = Assembly.GetExecutingAssembly().Location;
+            string path = (Path.GetDirectoryName(assembly));
+            AppDomain.CurrentDomain.SetData("DataDirectory", path);
 
             //инициализировать DataGridView начальными данными
             using (StudentContext db = new StudentContext())
@@ -33,6 +40,8 @@ namespace Test
             StudentsGridView.Columns[0].Visible = false;
             //выбрать по умолчанию первый элемент в ComboBox
             SearchType.SelectedIndex = 0;
+            //запустить таймер
+            RefreshTimer.Start();
         }
 
         //добавить объект
@@ -47,33 +56,33 @@ namespace Test
                     return;
                 if (ValidateModel(create))
                 {
+                    //если модель прошла валидацию, то создать объект
+                    Student student = new Student
+                    {
+                        Name = create.NameBox.Text,
+                        Surname = create.SurnameBox.Text,
+                        BirthYear = Convert.ToInt32(create.YearBox.Text)
+                    };
+                    //добавить объект и сохранить изменения
                     using (StudentContext db = new StudentContext())
                     {
-                        //если модель прошла валидацию, то создать объект
-                        Student student = new Student
-                        {
-                            Name = create.NameBox.Text,
-                            Surname = create.SurnameBox.Text,
-                            BirthYear = Convert.ToInt32(create.YearBox.Text)
-                        };
-                        //добавить объект и сохранить изменения
                         db.Students.Add(student);
                         db.SaveChanges();
-                        //обновить DataGridView
-                        RefreshGrid();
-                        for (int i = 0; i < StudentsGridView.Rows.Count; i++)
-                        {
-                            //поиск добавленного студента в DataGridView
-                            if (StudentsGridView.Rows[i].Cells[0].Value.Equals(student.Id))
-                            {
-                                //если найден, то он был успешно добавлен
-                                MessageBox.Show("Студент успешно добавлен");
-                                return;
-                            }
-                        }
-                        //иначе сгенерировать исключение
-                        throw new Exception("Произошла ошибка. Студент не добавлен");
                     }
+                    //обновить DataGridView
+                    RefreshGrid();
+                    for (int i = 0; i < StudentsGridView.Rows.Count; i++)
+                    {
+                        //поиск добавленного студента в DataGridView
+                        if (StudentsGridView.Rows[i].Cells[0].Value.Equals(student.Id))
+                        {
+                            //если найден, то он был успешно добавлен
+                            MessageBox.Show("Студент успешно добавлен");
+                            return;
+                        }
+                    }
+                    //иначе сгенерировать исключение
+                    throw new Exception("Произошла ошибка. Студент не добавлен");
                 }
                 else
                 {
@@ -91,12 +100,11 @@ namespace Test
         {
             try
             {
-
+                //коллекция для студентов, которых необходимо удалить
+                List<Student> students = new List<Student>();
+                StringBuilder question = new StringBuilder("Вы действительно хотите удалить слудеющих студентов:");
                 using (StudentContext db = new StudentContext())
                 {
-                    //коллекция для студентов, которых необходимо удалить
-                    List<Student> students = new List<Student>();
-                    StringBuilder question = new StringBuilder("Вы действительно хотите удалить слудеющих студентов:");
                     foreach (DataGridViewRow row in StudentsGridView.SelectedRows)
                     {
                         //для каждой выделенной строки получить id
@@ -135,7 +143,6 @@ namespace Test
                         }
                     }
                     MessageBox.Show("Студенты успешно удалёны");
-
                 }
             }
             catch (Exception ex)
@@ -155,10 +162,10 @@ namespace Test
                     throw new Exception("Необходимо выбрать одну запись для редактирования!");
                 }
                 Student student = null;
+                //найти объект по id
+                int id = (int)StudentsGridView.SelectedRows[0].Cells[0].Value;
                 using (StudentContext db = new StudentContext())
                 {
-                    //найти объект по id
-                    int id = (int)StudentsGridView.SelectedRows[0].Cells[0].Value;
                     student = db.Students.Find(id);
                 }
                 //если не найден, то ошибка
@@ -173,39 +180,39 @@ namespace Test
                     return;
                 if (ValidateModel(edit))
                 {
+                    //если модель прошла валидацию, то меняем все поля у полученного ранее объекта
+                    student.Name = edit.NameBox.Text;
+                    student.Surname = edit.SurnameBox.Text;
+                    student.BirthYear = Convert.ToInt32(edit.YearBox.Text);
+                    //пометить объект как изменённый и сохранить
                     using (StudentContext db = new StudentContext())
                     {
-                        //если модель прошла валидацию, то меняем все поля у полученного ранее объекта
-                        student.Name = edit.NameBox.Text;
-                        student.Surname = edit.SurnameBox.Text;
-                        student.BirthYear = Convert.ToInt32(edit.YearBox.Text);
-                        //пометить объект как изменённый и сохранить
                         db.Entry(student).State = EntityState.Modified;
                         db.SaveChanges();
-                        //обновить DataGridView
-                        RefreshGrid();
-                        for (int i = 0; i < StudentsGridView.Rows.Count; i++)
+                    }
+                    //обновить DataGridView
+                    RefreshGrid();
+                    for (int i = 0; i < StudentsGridView.Rows.Count; i++)
+                    {
+                        //найти студента в DataGridView по id
+                        if (StudentsGridView.Rows[i].Cells[0].Value.Equals(student.Id))
                         {
-                            //найти студента в DataGridView по id
-                            if (StudentsGridView.Rows[i].Cells[0].Value.Equals(student.Id))
+                            //если найден, то проверить, были ли изменены все поля
+                            DataGridViewCellCollection cells = StudentsGridView.Rows[i].Cells;
+                            if (cells[1].Value.ToString() == student.Name &&
+                                cells[2].Value.ToString() == student.Surname &&
+                                (int)cells[3].Value == student.BirthYear)
                             {
-                                //если найден, то проверить, были ли изменены все поля
-                                DataGridViewCellCollection cells = StudentsGridView.Rows[i].Cells;
-                                if (cells[1].Value.ToString() == student.Name &&
-                                    cells[2].Value.ToString() == student.Surname &&
-                                    (int)cells[3].Value == student.BirthYear)
-                                {
-                                    MessageBox.Show("Студент успешно отредактирован");
-                                    return;
-                                }
-                                else
-                                {
-                                    throw new Exception("Произошла ошибка. Информация не отредактирована");
-                                }
+                                MessageBox.Show("Студент успешно отредактирован");
+                                return;
+                            }
+                            else
+                            {
+                                throw new Exception("Произошла ошибка. Информация не отредактирована");
                             }
                         }
-                        throw new Exception("Произошла ошибка. Студент не найден");
                     }
+                    throw new Exception("Произошла ошибка. Студент не найден");
                 }
                 else
                 {
@@ -222,7 +229,6 @@ namespace Test
         private void RefreshButton_Click(object sender, EventArgs e)
         {
             RefreshGrid();
-            Search();
         }
 
         //искать при вводе в TextBox
@@ -270,6 +276,7 @@ namespace Test
                 Students = db.Students.ToList();
                 StudentsGridView.DataSource = Students;
             }
+            Search();
         }
 
         //валидация модели
@@ -291,6 +298,11 @@ namespace Test
                 }
             }
             return true;
+        }
+
+        private void RefreshTimer_Tick(object sender, EventArgs e)
+        {
+            RefreshGrid();
         }
     }
 }
